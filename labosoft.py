@@ -1247,49 +1247,52 @@ class LaboSoft(tk.Tk):
                     lambda _, ln=lab_name, sn=sec_name:
                         self._add_software(ln, sn))
 
-            PER_ROW = 3
-            for i in range(0, len(filtered), PER_ROW):
-                row = tk.Frame(body, bg=PANEL2)
-                row.pack(fill="x", pady=1)
-                for sw_name, sw_lic in filtered[i:i + PER_ROW]:
-                    is_match = bool(q and q in sw_name.lower())
-                    lic_col = LICENCE_COLORS.get(sw_lic, TEXT)
+            for sw_name, sw_lic in filtered:
+                is_match = bool(q and q in sw_name.lower())
+                lic_col = LICENCE_COLORS.get(sw_lic, TEXT)
 
-                    bg = hex_mix(neon, 0.25) if is_match else TAG_BG
-                    fg = neon if is_match else TEXT
-                    brd = neon if is_match else BORDER
+                bg = hex_mix(neon, 0.12) if is_match else "#0c1020"
+                fg = WHITE if not is_match else neon
+                brd = neon if is_match else hex_mix(neon, 0.25)
 
-                    lf = tk.Frame(row, bg=brd, padx=1, pady=1)
-                    lf.pack(side="left", padx=2, pady=1)
-                    inner_f = tk.Frame(lf, bg=bg)
-                    inner_f.pack(fill="both", expand=True)
+                # Row container
+                row_outer = tk.Frame(body, bg=brd, padx=1, pady=1)
+                row_outer.pack(fill="x", padx=4, pady=2)
+                row_inner = tk.Frame(row_outer, bg=bg)
+                row_inner.pack(fill="x")
 
-                    # Nom du logiciel
-                    tk.Label(inner_f, text=sw_name, bg=bg, fg=fg,
-                             font=("Consolas", 9, "bold"),
-                             padx=6, pady=3, width=22,
-                             anchor="w").pack(side="left")
+                # Delete button on far left (only in single-lab view)
+                if is_single:
+                    del_lbl = tk.Label(
+                        row_inner, text="\u2716", bg=bg, fg="#ff4444",
+                        font=("Consolas", 8), cursor="hand2",
+                        padx=4, pady=4)
+                    del_lbl.pack(side="left", padx=(4, 0))
+                    del_lbl.bind(
+                        "<Button-1>",
+                        lambda _, ln=lab_name, sn=sec_name,
+                               swn=sw_name, swl=sw_lic:
+                            self._delete_software(ln, sn, swn, swl))
 
-                    # Badge licence
-                    lic_bg = hex_mix(lic_col, 0.25)
-                    tk.Label(inner_f, text=sw_lic, bg=lic_bg, fg=lic_col,
-                             font=("Consolas", 7, "bold"),
-                             padx=4, pady=2, width=5).pack(side="right",
-                                                           padx=(0, 2),
-                                                           pady=1)
+                # Lock icon
+                tk.Label(row_inner, text="\U0001f512", bg=bg, fg=neon,
+                         font=("Consolas", 9)).pack(
+                             side="left", padx=(8, 4), pady=4)
 
-                    # Delete button (only in single-lab view)
-                    if is_single:
-                        del_lbl = tk.Label(
-                            inner_f, text="✕", bg=bg, fg="#ff4444",
-                            font=("Consolas", 9, "bold"), cursor="hand2",
-                            padx=3, pady=0)
-                        del_lbl.pack(side="right", padx=(0, 2))
-                        del_lbl.bind(
-                            "<Button-1>",
-                            lambda _, ln=lab_name, sn=sec_name,
-                                   swn=sw_name, swl=sw_lic:
-                                self._delete_software(ln, sn, swn, swl))
+                # Software name
+                tk.Label(row_inner, text=sw_name.upper(), bg=bg, fg=fg,
+                         font=("Consolas", 10, "bold"),
+                         padx=4, pady=5,
+                         anchor="w").pack(side="left", fill="x", expand=True)
+
+                # Licence badge on far right
+                lic_bg = hex_mix(lic_col, 0.3)
+                lic_frame = tk.Frame(row_inner, bg=lic_col, padx=1, pady=1)
+                lic_frame.pack(side="right", padx=(4, 8), pady=3)
+                tk.Label(lic_frame, text=f" {sw_lic} ",
+                         bg=lic_bg, fg=lic_col,
+                         font=("Consolas", 8, "bold"),
+                         padx=6, pady=1).pack()
 
         # Badge compteur
         badge_out = tk.Frame(hdr, bg=hex_mix(neon, 0.45), padx=1, pady=1)
