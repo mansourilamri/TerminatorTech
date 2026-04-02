@@ -32,7 +32,7 @@ LICENCE_COLORS = {
 
 LABS = {
     "Laboratoire Arts": {
-        "neon": "#00ff88", "icon": "ART",
+        "neon": "#00ff88", "icon": "Laboratoire Arts",
         "sections": {
             "Tous les ordinateurs (Adobe CC)": [
                 ("After Effect", "PROP"), ("Animate", "PROP"),
@@ -63,7 +63,7 @@ LABS = {
         },
     },
     "Laboratoire Communication": {
-        "neon": "#00cfff", "icon": "COM",
+        "neon": "#00cfff", "icon": "Laboratoire Communication",
         "sections": {
             "MAC OS X 13 (Ventura)": [
                 ("Ableton Live 12", "PROP"), ("Adobe Acrobat DC", "PROP"),
@@ -113,7 +113,7 @@ LABS = {
         },
     },
     "Laboratoire Sciences": {
-        "neon": "#bf5fff", "icon": "SCI",
+        "neon": "#bf5fff", "icon": "Laboratoire Sciences",
         "sections": {
             "Bureautique": [
                 ("Adobe Reader", "FREE"), ("Antidote", "PROP"),
@@ -208,7 +208,7 @@ LABS = {
         },
     },
     "Sciences de l'education": {
-        "neon": "#ff6b6b", "icon": "EDU",
+        "neon": "#ff6b6b", "icon": "Sciences de l'education",
         "sections": {
             "PC Windows 11": [
                 ("7-Zip", "OS"), ("ActiveInspire", "PROP"),
@@ -248,7 +248,7 @@ LABS = {
         },
     },
     "Sciences de la gestion": {
-        "neon": "#ffd700", "icon": "GEST",
+        "neon": "#ffd700", "icon": "Sciences de la gestion",
         "sections": {
             "PC Windows 11": [
                 ("Adobe Acrobat (64-bit)", "PROP"),
@@ -304,7 +304,7 @@ LABS = {
         },
     },
     "Sciences humaines & Langues": {
-        "neon": "#ff9f43", "icon": "SHL",
+        "neon": "#ff9f43", "icon": "Sciences humaines et Langues",
         "sections": {
             "PC Windows 10": [
                 ("Adobe Acrobat Reader XI Pro", "PROP"),
