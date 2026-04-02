@@ -673,33 +673,39 @@ class LaboSoft(tk.Tk):
     # -- Construction UI -------------------------------------------------------
     def _build_ui(self):
         # ══ HEADER BAR ═══════════════════════════════════════════════════════
+        # Top neon glow line
+        tk.Frame(self, bg=ACCENT2, height=2).pack(fill="x")
+
         top = tk.Frame(self, bg=HEADER_BG)
         top.pack(fill="x")
 
-        # Glow line top
-        tk.Frame(self, bg=ACCENT, height=2).pack(fill="x")
+        # Inner glow line
+        tk.Frame(top, bg=hex_mix(ACCENT2, 0.3), height=1).pack(fill="x")
 
-        left = tk.Frame(top, bg=HEADER_BG)
-        left.pack(side="left", padx=16, pady=10)
+        header_content = tk.Frame(top, bg=HEADER_BG)
+        header_content.pack(fill="x", padx=16, pady=12)
 
-        # Logo icon
-        tk.Label(left, text="◈", bg=HEADER_BG, fg=GLOW,
-                 font=("Consolas", 22, "bold")).pack(side="left", padx=(0, 10))
+        left = tk.Frame(header_content, bg=HEADER_BG)
+        left.pack(side="left")
+
+        # Logo icon with green glow
+        tk.Label(left, text="◈", bg=HEADER_BG, fg=ACCENT2,
+                 font=("Consolas", 24, "bold")).pack(side="left", padx=(0, 12))
 
         # Title: LABOSOFT-UQAM
         tk.Label(left, text="LABOSOFT", bg=HEADER_BG, fg=WHITE,
-                 font=("Consolas", 18, "bold")).pack(side="left")
-        tk.Label(left, text="-UQAM", bg=HEADER_BG, fg=GLOW,
-                 font=("Consolas", 18, "bold")).pack(side="left")
+                 font=("Consolas", 20, "bold")).pack(side="left")
+        tk.Label(left, text="-UQAM", bg=HEADER_BG, fg=ACCENT2,
+                 font=("Consolas", 20, "bold")).pack(side="left")
 
-        # Subtitle
-        tk.Label(left, text="  // PRO", bg=HEADER_BG, fg=ACCENT,
-                 font=("Consolas", 11, "bold")).pack(side="left", padx=(4, 0))
+        # Subtitle with green neon
+        tk.Label(left, text="  // PRO", bg=HEADER_BG, fg=ACCENT2,
+                 font=("Consolas", 12, "bold")).pack(side="left", padx=(6, 0))
 
-        right = tk.Frame(top, bg=HEADER_BG)
-        right.pack(side="right", padx=16, pady=10)
-        self._clock_lbl = tk.Label(right, text="", bg=HEADER_BG, fg=MUTED,
-                                   font=("Consolas", 9, "bold"))
+        right = tk.Frame(header_content, bg=HEADER_BG)
+        right.pack(side="right")
+        self._clock_lbl = tk.Label(right, text="", bg=HEADER_BG, fg=ACCENT2,
+                                   font=("Consolas", 10, "bold"))
         self._clock_lbl.pack(side="left", padx=14)
 
         # -- Boutons Excel -------------------------------------------------
@@ -715,16 +721,21 @@ class LaboSoft(tk.Tk):
                                command=self._export_excel)
             exp_btn.pack(side="left", padx=3)
 
-        # UQAM badge
-        uqam_out = tk.Frame(right, bg=GLOW, padx=1, pady=1)
-        uqam_out.pack(side="left")
+        # UQAM badge with green neon
+        uqam_glow = tk.Frame(right, bg=hex_mix(ACCENT2, 0.3), padx=2, pady=2)
+        uqam_glow.pack(side="left")
+        uqam_out = tk.Frame(uqam_glow, bg=ACCENT2, padx=1, pady=1)
+        uqam_out.pack()
         uqam_in = tk.Frame(uqam_out, bg=HEADER_BG)
         uqam_in.pack()
-        tk.Label(uqam_in, text="◆ UQAM", bg=HEADER_BG, fg=GLOW,
-                 font=("Consolas", 9, "bold"), padx=12, pady=5).pack()
+        tk.Label(uqam_in, text="◆ UQAM", bg=HEADER_BG, fg=ACCENT2,
+                 font=("Consolas", 10, "bold"), padx=14, pady=5).pack()
 
-        # Glow line under header
-        tk.Frame(self, bg=ACCENT, height=1).pack(fill="x")
+        # Inner glow line bottom
+        tk.Frame(top, bg=hex_mix(ACCENT2, 0.3), height=1).pack(fill="x")
+
+        # Bottom neon glow line
+        tk.Frame(self, bg=ACCENT2, height=2).pack(fill="x")
 
         # ══ STATUS BAR ═══════════════════════════════════════════════════
         st = tk.Frame(self, bg=PANEL, pady=5, padx=16)
@@ -1315,7 +1326,7 @@ class LaboSoft(tk.Tk):
                 lic_col = LICENCE_COLORS.get(sw_lic, TEXT)
 
                 bg = hex_mix(neon, 0.12) if is_match else "#0c1020"
-                fg = WHITE if not is_match else neon
+                fg = ACCENT2 if not is_match else neon
                 brd = neon if is_match else hex_mix(neon, 0.25)
 
                 # Row container
@@ -1327,8 +1338,8 @@ class LaboSoft(tk.Tk):
                 # Delete button on far left (only in single-lab view)
                 if is_single:
                     del_lbl = tk.Label(
-                        row_inner, text="\u2716", bg=bg, fg="#ff4444",
-                        font=("Consolas", 8), cursor="hand2",
+                        row_inner, text="\u2716", bg=bg, fg=ACCENT2,
+                        font=("Consolas", 9, "bold"), cursor="hand2",
                         padx=4, pady=4)
                     del_lbl.pack(side="left", padx=(4, 0))
                     del_lbl.bind(
@@ -1338,7 +1349,7 @@ class LaboSoft(tk.Tk):
                             self._delete_software(ln, sn, swn, swl))
 
                 # Lock icon
-                tk.Label(row_inner, text="\U0001f512", bg=bg, fg=neon,
+                tk.Label(row_inner, text="\U0001f512", bg=bg, fg=ACCENT2,
                          font=("Consolas", 9)).pack(
                              side="left", padx=(8, 4), pady=4)
 
