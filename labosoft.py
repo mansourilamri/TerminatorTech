@@ -435,6 +435,70 @@ def load_labs_from_excel(filepath):
     return labs
 
 
+def load_single_lab_from_excel(filepath):
+    """Charge les logiciels d'un seul laboratoire depuis un fichier Excel.
+
+    Format attendu:
+    - Colonnes: Section | Logiciel | Licence
+    - Lit uniquement la premiere feuille du fichier
+    Retourne un dict de sections: {section_name: [(logiciel, licence), ...]}
+    """
+    if not HAS_OPENPYXL:
+        raise ImportError(
+            "Le module 'openpyxl' est requis.\n"
+            "Installez-le avec: pip install openpyxl")
+
+    wb = load_workbook(filepath, read_only=True, data_only=True)
+    ws = wb.active
+    sections = {}
+
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or len(row) < 3:
+            continue
+        section = str(row[0]).strip() if row[0] else ""
+        logiciel = str(row[1]).strip() if row[1] else ""
+        licence = str(row[2]).strip().upper() if row[2] else ""
+
+        if not section or not logiciel:
+            continue
+        if licence not in VALID_LICENCES:
+            licence = "FREE"
+
+        if section not in sections:
+            sections[section] = []
+        sections[section].append((logiciel, licence))
+
+    wb.close()
+    return sections
+
+
+def export_single_lab_to_excel(lab_name, lab_data, filepath):
+    """Exporte un seul laboratoire vers un fichier Excel."""
+    if not HAS_OPENPYXL:
+        raise ImportError(
+            "Le module 'openpyxl' est requis.\n"
+            "Installez-le avec: pip install openpyxl")
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = lab_name[:31]
+    ws.append(["Section", "Logiciel", "Licence"])
+
+    for cell in ws[1]:
+        cell.font = cell.font.copy(bold=True)
+
+    for sec_name, softs in lab_data["sections"].items():
+        for sw_name, sw_lic in softs:
+            ws.append([sec_name, sw_name, sw_lic])
+
+    ws.column_dimensions['A'].width = 35
+    ws.column_dimensions['B'].width = 40
+    ws.column_dimensions['C'].width = 10
+
+    wb.save(filepath)
+    wb.close()
+
+
 def export_labs_to_excel(labs, filepath):
     """Exporte les donnees des laboratoires vers un fichier Excel.
 
@@ -877,6 +941,161 @@ class LaboSoft(tk.Tk):
             btn.pack(side="left", padx=4)
             self._tab_widgets[name] = btn
 
+    # -- Per-lab Import / Export -----------------------------------------------
+    def _import_lab_excel(self, lab_name):
+        """Importer un fichier Excel pour un seul laboratoire."""
+        filepath = filedialog.askopenfilename(
+            title=f"Importer Excel pour: {lab_name}",
+            filetypes=[("Fichiers Excel", "*.xlsx *.xls"), ("Tous", "*.*")])
+        if not filepath:
+            return
+        try:
+            sections = load_single_lab_from_excel(filepath)
+            if not sections:
+                messagebox.showwarning(
+                    "Import Excel",
+                    "Aucun logiciel trouve dans le fichier.\n"
+                    "Verifiez le format:\n"
+                    "- Colonnes: Section | Logiciel | Licence")
+                return
+            self._labs[lab_name]["sections"] = sections
+            self._refresh()
+            count = sum(len(s) for s in sections.values())
+            messagebox.showinfo(
+                "Import Excel",
+                f"Import reussi!\n"
+                f"{count} logiciel(s) charges pour {lab_name}\n"
+                f"depuis: {os.path.basename(filepath)}")
+        except Exception as e:
+            messagebox.showerror("Erreur d'import", str(e))
+
+    def _export_lab_excel(self, lab_name):
+        """Exporter un seul laboratoire vers Excel."""
+        filepath = filedialog.asksaveasfilename(
+            title=f"Exporter Excel pour: {lab_name}",
+            defaultextension=".xlsx",
+            initialfile=f"{lab_name.replace(' ', '_')}.xlsx",
+            filetypes=[("Fichiers Excel", "*.xlsx"), ("Tous", "*.*")])
+        if not filepath:
+            return
+        try:
+            export_single_lab_to_excel(
+                lab_name, self._labs[lab_name], filepath)
+            messagebox.showinfo(
+                "Export Excel",
+                f"Export reussi!\nFichier: {os.path.basename(filepath)}\n\n"
+                f"Modifiez ce fichier dans Excel puis\n"
+                f"re-importez-le avec le bouton 'IMPORTER'.")
+        except Exception as e:
+            messagebox.showerror("Erreur d'export", str(e))
+
+    # -- Add / Delete software -------------------------------------------------
+    def _add_software(self, lab_name, section_name=None):
+        """Ouvre un dialogue pour ajouter un logiciel."""
+        dlg = tk.Toplevel(self)
+        dlg.title(f"Ajouter un logiciel - {lab_name}")
+        dlg.configure(bg=PANEL)
+        dlg.geometry("420x280")
+        dlg.resizable(False, False)
+        dlg.transient(self)
+        dlg.grab_set()
+
+        neon = self._labs[lab_name]["neon"]
+
+        tk.Label(dlg, text="◈ AJOUTER UN LOGICIEL", bg=PANEL, fg=neon,
+                 font=("Courier", 11, "bold")).pack(pady=(12, 8))
+
+        form = tk.Frame(dlg, bg=PANEL)
+        form.pack(fill="x", padx=20)
+
+        # Section
+        tk.Label(form, text="Section:", bg=PANEL, fg=TEXT,
+                 font=("Courier", 9), anchor="w").grid(
+                     row=0, column=0, sticky="w", pady=4)
+        sec_var = tk.StringVar(value=section_name or "")
+        sections = list(self._labs[lab_name]["sections"].keys())
+        if sections:
+            sec_combo = ttk.Combobox(form, textvariable=sec_var,
+                                     values=sections, font=("Courier", 9),
+                                     width=30)
+        else:
+            sec_combo = tk.Entry(form, textvariable=sec_var,
+                                 font=("Courier", 9), width=32)
+        sec_combo.grid(row=0, column=1, sticky="w", pady=4, padx=(8, 0))
+
+        # Logiciel
+        tk.Label(form, text="Logiciel:", bg=PANEL, fg=TEXT,
+                 font=("Courier", 9), anchor="w").grid(
+                     row=1, column=0, sticky="w", pady=4)
+        sw_var = tk.StringVar()
+        tk.Entry(form, textvariable=sw_var, font=("Courier", 9),
+                 width=32).grid(row=1, column=1, sticky="w", pady=4,
+                                padx=(8, 0))
+
+        # Licence
+        tk.Label(form, text="Licence:", bg=PANEL, fg=TEXT,
+                 font=("Courier", 9), anchor="w").grid(
+                     row=2, column=0, sticky="w", pady=4)
+        lic_var = tk.StringVar(value="FREE")
+        lic_combo = ttk.Combobox(
+            form, textvariable=lic_var,
+            values=["OS", "PROP", "FREE", "FREEM"],
+            font=("Courier", 9), width=10, state="readonly")
+        lic_combo.grid(row=2, column=1, sticky="w", pady=4, padx=(8, 0))
+
+        # Buttons
+        btn_frame = tk.Frame(dlg, bg=PANEL)
+        btn_frame.pack(pady=16)
+
+        def do_add():
+            sec = sec_var.get().strip()
+            sw = sw_var.get().strip()
+            lic = lic_var.get().strip().upper()
+            if not sec or not sw:
+                messagebox.showwarning(
+                    "Champ manquant",
+                    "Veuillez remplir la section et le nom du logiciel.")
+                return
+            if lic not in VALID_LICENCES:
+                lic = "FREE"
+            if sec not in self._labs[lab_name]["sections"]:
+                self._labs[lab_name]["sections"][sec] = []
+            self._labs[lab_name]["sections"][sec].append((sw, lic))
+            dlg.destroy()
+            self._refresh()
+
+        add_btn = neon_btn(btn_frame, "AJOUTER", neon, command=do_add)
+        add_btn.pack(side="left", padx=6)
+
+        cancel_btn = neon_btn(btn_frame, "ANNULER", MUTED,
+                              command=dlg.destroy)
+        cancel_btn.pack(side="left", padx=6)
+
+    def _delete_software(self, lab_name, sec_name, sw_name, sw_lic):
+        """Supprime un logiciel apres confirmation."""
+        confirm = messagebox.askyesno(
+            "Supprimer un logiciel",
+            f"Voulez-vous supprimer '{sw_name}' ({sw_lic})\n"
+            f"de la section '{sec_name}' ?")
+        if not confirm:
+            return
+        softs = self._labs[lab_name]["sections"].get(sec_name, [])
+        try:
+            softs.remove((sw_name, sw_lic))
+        except ValueError:
+            pass
+        # Supprimer la section si elle est vide
+        if not softs:
+            del self._labs[lab_name]["sections"][sec_name]
+        self._refresh()
+
+    def _refresh(self):
+        """Rafraichit l'affichage avec les donnees actuelles."""
+        q = self._search_var.get()
+        if q == "Rechercher un logiciel...":
+            q = ""
+        self._render(q)
+
     # -- Rendu -----------------------------------------------------------------
     def _render(self, query=""):
         for w in self._content.winfo_children():
@@ -889,6 +1108,30 @@ class LaboSoft(tk.Tk):
         cols = 2 if self._active_lab is None else 1
         wrapper = tk.Frame(self._content, bg=BG)
         wrapper.pack(fill="both", expand=True, padx=14, pady=14)
+
+        # Per-lab action bar (when a single lab is selected)
+        if self._active_lab is not None and HAS_OPENPYXL:
+            action_bar = tk.Frame(wrapper, bg=PANEL2, pady=6, padx=10)
+            action_bar.pack(fill="x", pady=(0, 10))
+
+            lab_neon = self._labs[self._active_lab]["neon"]
+            tk.Label(action_bar, text="◈ GESTION:", bg=PANEL2, fg=MUTED,
+                     font=("Courier", 8, "bold")).pack(side="left", padx=(0, 8))
+
+            imp_btn = neon_btn(
+                action_bar, "IMPORTER EXCEL", "#00ff88",
+                command=lambda: self._import_lab_excel(self._active_lab))
+            imp_btn.pack(side="left", padx=3)
+
+            exp_btn = neon_btn(
+                action_bar, "EXPORTER EXCEL", "#ffd700",
+                command=lambda: self._export_lab_excel(self._active_lab))
+            exp_btn.pack(side="left", padx=3)
+
+            add_btn = neon_btn(
+                action_bar, "+ AJOUTER LOGICIEL", lab_neon,
+                command=lambda: self._add_software(self._active_lab))
+            add_btn.pack(side="left", padx=3)
 
         col_frames = []
         for c in range(cols):
@@ -919,6 +1162,7 @@ class LaboSoft(tk.Tk):
     def _make_card(self, parent, lab_name, lab, q):
         neon = lab["neon"]
         lic_filter = self._filter_licence
+        is_single = self._active_lab is not None
 
         outer = tk.Frame(parent, bg=neon, padx=1, pady=1)
         outer.pack(fill="x", pady=(0, 12))
@@ -959,12 +1203,23 @@ class LaboSoft(tk.Tk):
             for _, lic in filtered:
                 stats[lic] = stats.get(lic, 0) + 1
 
-            if len(lab["sections"]) > 1:
-                sr = tk.Frame(body, bg=PANEL2)
-                sr.pack(fill="x", pady=(6, 2))
-                tk.Label(sr, text=f"  ◈ {sec_name}", bg=PANEL2, fg=neon,
-                         font=("Courier", 8, "bold"),
-                         anchor="w").pack(side="left")
+            # Section header with + button
+            sr = tk.Frame(body, bg=PANEL2)
+            sr.pack(fill="x", pady=(6, 2))
+            tk.Label(sr, text=f"  ◈ {sec_name}", bg=PANEL2, fg=neon,
+                     font=("Courier", 8, "bold"),
+                     anchor="w").pack(side="left")
+
+            if is_single:
+                add_sec_btn = tk.Label(
+                    sr, text=" + ", bg=hex_mix(neon, 0.15), fg=neon,
+                    font=("Courier", 8, "bold"), cursor="hand2",
+                    padx=4, pady=0)
+                add_sec_btn.pack(side="left", padx=6)
+                add_sec_btn.bind(
+                    "<Button-1>",
+                    lambda _, ln=lab_name, sn=sec_name:
+                        self._add_software(ln, sn))
 
             PER_ROW = 3
             for i in range(0, len(filtered), PER_ROW):
@@ -986,7 +1241,7 @@ class LaboSoft(tk.Tk):
                     # Nom du logiciel
                     tk.Label(inner_f, text=sw_name, bg=bg, fg=fg,
                              font=("Courier", 8),
-                             padx=5, pady=2, width=24,
+                             padx=5, pady=2, width=22,
                              anchor="w").pack(side="left")
 
                     # Badge licence
@@ -994,8 +1249,21 @@ class LaboSoft(tk.Tk):
                     tk.Label(inner_f, text=sw_lic, bg=lic_bg, fg=lic_col,
                              font=("Courier", 6, "bold"),
                              padx=3, pady=1, width=5).pack(side="right",
-                                                           padx=(0, 3),
+                                                           padx=(0, 1),
                                                            pady=1)
+
+                    # Delete button (only in single-lab view)
+                    if is_single:
+                        del_lbl = tk.Label(
+                            inner_f, text="✕", bg=bg, fg="#ff4444",
+                            font=("Courier", 7, "bold"), cursor="hand2",
+                            padx=2, pady=0)
+                        del_lbl.pack(side="right", padx=(0, 1))
+                        del_lbl.bind(
+                            "<Button-1>",
+                            lambda _, ln=lab_name, sn=sec_name,
+                                   swn=sw_name, swl=sw_lic:
+                                self._delete_software(ln, sn, swn, swl))
 
         # Badge compteur
         badge_out = tk.Frame(hdr, bg=hex_mix(neon, 0.4), padx=1, pady=1)
