@@ -534,15 +534,19 @@ def export_labs_to_excel(labs, filepath):
     wb.close()
 
 
-BG     = "#0a0a0f"
-PANEL  = "#0f0f1a"
-PANEL2 = "#13131f"
-BORDER = "#1a1a2e"
-TEXT   = "#c8d6e5"
-MUTED  = "#576574"
-TAG_BG = "#16213e"
+BG     = "#060610"
+PANEL  = "#0c0c1a"
+PANEL2 = "#10101e"
+BORDER = "#1a1a30"
+TEXT   = "#d0dce8"
+MUTED  = "#5a6a7a"
+TAG_BG = "#14203a"
 MATCH  = "#1f3a6e"
 WHITE  = "#ffffff"
+HEADER_BG = "#050510"
+ACCENT = "#00cfff"
+ACCENT2 = "#00ff88"
+GLOW   = "#00e5ff"
 
 
 def hex_mix(hex_col, alpha, br=10, bg_=10, bb=15):
@@ -556,10 +560,10 @@ def hex_mix(hex_col, alpha, br=10, bg_=10, bb=15):
 
 
 def neon_btn(parent, text, color, command, active=False):
-    """Bouton style neon avec Frame+Label."""
-    bg_col = hex_mix(color, 0.18) if active else PANEL2
+    """Bouton style neon futuriste avec Frame+Label."""
+    bg_col = hex_mix(color, 0.22) if active else PANEL2
     fg_col = color
-    bd_col = color if active else hex_mix(color, 0.4)
+    bd_col = color if active else hex_mix(color, 0.45)
 
     outer = tk.Frame(parent, bg=bd_col, padx=1, pady=1)
     inner = tk.Frame(outer, bg=bg_col)
@@ -567,18 +571,18 @@ def neon_btn(parent, text, color, command, active=False):
 
     dot = tk.Label(inner, text="◆", bg=bg_col,
                    fg=color if active else MUTED,
-                   font=("Courier", 7))
+                   font=("Consolas", 8))
     dot.pack(side="left", padx=(6, 2), pady=6)
 
     lbl = tk.Label(inner, text=text, bg=bg_col,
                    fg=fg_col if active else MUTED,
-                   font=("Courier", 8, "bold"), pady=6, padx=4)
+                   font=("Consolas", 9, "bold"), pady=6, padx=4)
     lbl.pack(side="left", padx=(0, 6))
 
     def on_enter(_):
-        inner.config(bg=hex_mix(color, 0.12))
-        dot.config(bg=hex_mix(color, 0.12), fg=color)
-        lbl.config(bg=hex_mix(color, 0.12), fg=color)
+        inner.config(bg=hex_mix(color, 0.18))
+        dot.config(bg=hex_mix(color, 0.18), fg=color)
+        lbl.config(bg=hex_mix(color, 0.18), fg=color)
 
     def on_leave(_):
         inner.config(bg=bg_col)
@@ -599,10 +603,10 @@ def neon_btn(parent, text, color, command, active=False):
 class LaboSoft(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("LaboSoft Pro - Laboratoires Informatiques UQAM")
+        self.title("LABOSOFT-UQAM // Laboratoires Informatiques")
         self.configure(bg=BG)
-        self.geometry("1350x820")
-        self.minsize(950, 600)
+        self.geometry("1400x860")
+        self.minsize(1000, 650)
         self._labs = dict(LABS)  # copie modifiable
         self._active_lab = None
         self._search_var = tk.StringVar()
@@ -619,72 +623,86 @@ class LaboSoft(tk.Tk):
     # -- Horloge ---------------------------------------------------------------
     def _tick(self):
         self._clock_lbl.config(
-            text="SYS-TIME: " + time.strftime("%Y-%m-%d  //  %H:%M:%S"))
+            text="⟨ SYS ⟩ " + time.strftime("%Y-%m-%d  //  %H:%M:%S"))
         self.after(1000, self._tick)
 
     # -- Construction UI -------------------------------------------------------
     def _build_ui(self):
-        # Titre
-        top = tk.Frame(self, bg="#07070f")
+        # ══ HEADER BAR ═══════════════════════════════════════════════════════
+        top = tk.Frame(self, bg=HEADER_BG)
         top.pack(fill="x")
-        left = tk.Frame(top, bg="#07070f")
-        left.pack(side="left", padx=12, pady=8)
-        tk.Label(left, text="◈", bg="#07070f", fg="#00cfff",
-                 font=("Courier", 18, "bold")).pack(side="left", padx=(0, 8))
-        tk.Label(left, text="LABOSOFT", bg="#07070f", fg=WHITE,
-                 font=("Courier", 14, "bold")).pack(side="left")
-        tk.Label(left, text="  PRO", bg="#07070f", fg="#00cfff",
-                 font=("Courier", 10)).pack(side="left")
 
-        right = tk.Frame(top, bg="#07070f")
-        right.pack(side="right", padx=12, pady=8)
-        self._clock_lbl = tk.Label(right, text="", bg="#07070f", fg=MUTED,
-                                   font=("Courier", 8))
-        self._clock_lbl.pack(side="left", padx=12)
+        # Glow line top
+        tk.Frame(self, bg=ACCENT, height=2).pack(fill="x")
+
+        left = tk.Frame(top, bg=HEADER_BG)
+        left.pack(side="left", padx=16, pady=10)
+
+        # Logo icon
+        tk.Label(left, text="◈", bg=HEADER_BG, fg=GLOW,
+                 font=("Consolas", 22, "bold")).pack(side="left", padx=(0, 10))
+
+        # Title: LABOSOFT-UQAM
+        tk.Label(left, text="LABOSOFT", bg=HEADER_BG, fg=WHITE,
+                 font=("Consolas", 18, "bold")).pack(side="left")
+        tk.Label(left, text="-UQAM", bg=HEADER_BG, fg=GLOW,
+                 font=("Consolas", 18, "bold")).pack(side="left")
+
+        # Subtitle
+        tk.Label(left, text="  // PRO", bg=HEADER_BG, fg=ACCENT,
+                 font=("Consolas", 11, "bold")).pack(side="left", padx=(4, 0))
+
+        right = tk.Frame(top, bg=HEADER_BG)
+        right.pack(side="right", padx=16, pady=10)
+        self._clock_lbl = tk.Label(right, text="", bg=HEADER_BG, fg=MUTED,
+                                   font=("Consolas", 9, "bold"))
+        self._clock_lbl.pack(side="left", padx=14)
 
         # -- Boutons Excel -------------------------------------------------
         if HAS_OPENPYXL:
-            excel_frame = tk.Frame(right, bg="#07070f")
-            excel_frame.pack(side="left", padx=(0, 10))
+            excel_frame = tk.Frame(right, bg=HEADER_BG)
+            excel_frame.pack(side="left", padx=(0, 12))
 
-            imp_btn = neon_btn(excel_frame, "IMPORTER EXCEL", "#00ff88",
+            imp_btn = neon_btn(excel_frame, "IMPORTER EXCEL", ACCENT2,
                                command=self._import_excel)
-            imp_btn.pack(side="left", padx=2)
+            imp_btn.pack(side="left", padx=3)
 
             exp_btn = neon_btn(excel_frame, "EXPORTER EXCEL", "#ffd700",
                                command=self._export_excel)
-            exp_btn.pack(side="left", padx=2)
+            exp_btn.pack(side="left", padx=3)
 
-        uqam_out = tk.Frame(right, bg="#00cfff", padx=1, pady=1)
+        # UQAM badge
+        uqam_out = tk.Frame(right, bg=GLOW, padx=1, pady=1)
         uqam_out.pack(side="left")
-        uqam_in = tk.Frame(uqam_out, bg=PANEL2)
+        uqam_in = tk.Frame(uqam_out, bg=HEADER_BG)
         uqam_in.pack()
-        tk.Label(uqam_in, text="◆ UQAM", bg=PANEL2, fg="#00cfff",
-                 font=("Courier", 8, "bold"), padx=10, pady=4).pack()
+        tk.Label(uqam_in, text="◆ UQAM", bg=HEADER_BG, fg=GLOW,
+                 font=("Consolas", 9, "bold"), padx=12, pady=5).pack()
 
-        tk.Frame(self, bg="#00cfff", height=1).pack(fill="x")
+        # Glow line under header
+        tk.Frame(self, bg=ACCENT, height=1).pack(fill="x")
 
-        # Status bar
-        st = tk.Frame(self, bg=PANEL, pady=4, padx=14)
+        # ══ STATUS BAR ═══════════════════════════════════════════════════
+        st = tk.Frame(self, bg=PANEL, pady=5, padx=16)
         st.pack(fill="x")
         tk.Label(st, text="◆ SYSTEME OPERATIONNEL", bg=PANEL,
-                 fg="#00ff88", font=("Courier", 8)).pack(side="left")
+                 fg=ACCENT2, font=("Consolas", 9, "bold")).pack(side="left")
         tk.Label(st, text="   ◆ LABORATOIRES ACTIFS", bg=PANEL,
-                 fg="#00cfff", font=("Courier", 8)).pack(side="left")
+                 fg=ACCENT, font=("Consolas", 9, "bold")).pack(side="left")
         tk.Label(st, text="   ◆ PRET", bg=PANEL,
-                 fg=MUTED, font=("Courier", 8)).pack(side="left")
+                 fg=MUTED, font=("Consolas", 9)).pack(side="left")
         self._count_lbl = tk.Label(st, text="", bg=PANEL, fg=MUTED,
-                                   font=("Courier", 8))
+                                   font=("Consolas", 9, "bold"))
         self._count_lbl.pack(side="right")
         tk.Frame(self, bg=BORDER, height=1).pack(fill="x")
 
-        # -- Onglets neon ------------------------------------------------------
-        tab_outer = tk.Frame(self, bg=PANEL2, pady=10, padx=10)
+        # ══ TAB BAR ══════════════════════════════════════════════════════
+        tab_outer = tk.Frame(self, bg=PANEL2, pady=10, padx=12)
         tab_outer.pack(fill="x")
 
-        b = neon_btn(tab_outer, "TOUS LES LABOS", "#00cfff",
+        b = neon_btn(tab_outer, "TOUS LES LABOS", ACCENT,
                      command=lambda: self._show_lab(None), active=True)
-        b.pack(side="left", padx=4)
+        b.pack(side="left", padx=5)
         self._tab_widgets[None] = b
 
         for name, lab in self._labs.items():
@@ -693,22 +711,22 @@ class LaboSoft(tk.Tk):
             btn = neon_btn(tab_outer, icon, col,
                            command=lambda k=name: self._show_lab(k),
                            active=False)
-            btn.pack(side="left", padx=4)
+            btn.pack(side="left", padx=5)
             self._tab_widgets[name] = btn
 
-        tk.Frame(self, bg="#1a1a2e", height=1).pack(fill="x")
+        tk.Frame(self, bg=BORDER, height=1).pack(fill="x")
 
-        # -- Filtre par licence ------------------------------------------------
-        lic_bar = tk.Frame(self, bg=PANEL2, pady=6, padx=12)
+        # ══ LICENCE FILTER ════════════════════════════════════════════════
+        lic_bar = tk.Frame(self, bg=PANEL2, pady=7, padx=14)
         lic_bar.pack(fill="x")
         tk.Label(lic_bar, text="◈ FILTRE LICENCE:", bg=PANEL2, fg=MUTED,
-                 font=("Courier", 8, "bold")).pack(side="left", padx=(0, 8))
+                 font=("Consolas", 9, "bold")).pack(side="left", padx=(0, 10))
 
         # Bouton TOUS
-        all_btn = neon_btn(lic_bar, "TOUS", "#00cfff",
+        all_btn = neon_btn(lic_bar, "TOUS", ACCENT,
                            command=lambda: self._set_licence_filter(None),
                            active=True)
-        all_btn.pack(side="left", padx=3)
+        all_btn.pack(side="left", padx=4)
         self._filter_widgets[None] = all_btn
 
         for lic_key, lic_label in LICENCE_LABELS.items():
@@ -716,7 +734,7 @@ class LaboSoft(tk.Tk):
             fb = neon_btn(lic_bar, lic_label, col,
                           command=lambda k=lic_key: self._set_licence_filter(k),
                           active=False)
-            fb.pack(side="left", padx=3)
+            fb.pack(side="left", padx=4)
             self._filter_widgets[lic_key] = fb
 
         # Legende
@@ -725,32 +743,32 @@ class LaboSoft(tk.Tk):
         for lic_key in ("OS", "PROP", "FREE", "FREEM"):
             col = LICENCE_COLORS[lic_key]
             tk.Label(legend, text="●", bg=PANEL2, fg=col,
-                     font=("Courier", 8)).pack(side="left", padx=(6, 1))
+                     font=("Consolas", 9)).pack(side="left", padx=(8, 2))
             tk.Label(legend, text=LICENCE_LABELS[lic_key], bg=PANEL2,
-                     fg=MUTED, font=("Courier", 7)).pack(side="left")
+                     fg=MUTED, font=("Consolas", 8, "bold")).pack(side="left")
 
-        tk.Frame(self, bg="#1a1a2e", height=1).pack(fill="x")
+        tk.Frame(self, bg=BORDER, height=1).pack(fill="x")
 
-        # -- Recherche ---------------------------------------------------------
-        sb = tk.Frame(self, bg=PANEL2, pady=8, padx=12)
+        # ══ SEARCH BAR ═══════════════════════════════════════════════════
+        sb = tk.Frame(self, bg=PANEL2, pady=10, padx=14)
         sb.pack(fill="x")
-        tk.Label(sb, text="◈", bg=PANEL2, fg="#00cfff",
-                 font=("Courier", 12)).pack(side="left", padx=(0, 6))
+        tk.Label(sb, text="◈", bg=PANEL2, fg=GLOW,
+                 font=("Consolas", 14, "bold")).pack(side="left", padx=(0, 8))
 
-        ef = tk.Frame(sb, bg="#0d0d1f", highlightthickness=1,
-                      highlightbackground="#00cfff",
-                      highlightcolor="#00cfff")
-        ef.pack(side="left", fill="x", expand=True, ipady=2)
+        ef = tk.Frame(sb, bg="#0a0a1a", highlightthickness=2,
+                      highlightbackground=ACCENT,
+                      highlightcolor=GLOW)
+        ef.pack(side="left", fill="x", expand=True, ipady=3)
         self._entry = tk.Entry(ef, textvariable=self._search_var,
-                               bg="#0d0d1f", fg="#00cfff",
-                               insertbackground="#00cfff",
-                               relief="flat", font=("Courier", 11))
-        self._entry.pack(fill="x", expand=True, padx=8, ipady=4)
+                               bg="#0a0a1a", fg=ACCENT,
+                               insertbackground=GLOW,
+                               relief="flat", font=("Consolas", 13, "bold"))
+        self._entry.pack(fill="x", expand=True, padx=10, ipady=5)
         self._entry.insert(0, "Rechercher un logiciel...")
         self._entry.config(fg=MUTED)
         self._entry.bind("<FocusIn>", self._focus_in)
         self._entry.bind("<FocusOut>", self._focus_out)
-        tk.Frame(self, bg="#1a1a2e", height=1).pack(fill="x")
+        tk.Frame(self, bg=BORDER, height=1).pack(fill="x")
 
         # -- Canvas scroll -----------------------------------------------------
         cont = tk.Frame(self, bg=BG)
@@ -759,8 +777,8 @@ class LaboSoft(tk.Tk):
         style = ttk.Style()
         style.theme_use("clam")
         style.configure("N.Vertical.TScrollbar",
-                        background="#1a1a2e", troughcolor=BG,
-                        arrowcolor="#00cfff", bordercolor=BG,
+                        background=BORDER, troughcolor=BG,
+                        arrowcolor=ACCENT, bordercolor=BG,
                         darkcolor=BG, lightcolor=BG)
 
         self._canvas = tk.Canvas(cont, bg=BG, highlightthickness=0)
@@ -995,7 +1013,7 @@ class LaboSoft(tk.Tk):
         dlg = tk.Toplevel(self)
         dlg.title(f"Ajouter un logiciel - {lab_name}")
         dlg.configure(bg=PANEL)
-        dlg.geometry("420x280")
+        dlg.geometry("460x300")
         dlg.resizable(False, False)
         dlg.transient(self)
         dlg.grab_set()
@@ -1003,45 +1021,45 @@ class LaboSoft(tk.Tk):
         neon = self._labs[lab_name]["neon"]
 
         tk.Label(dlg, text="◈ AJOUTER UN LOGICIEL", bg=PANEL, fg=neon,
-                 font=("Courier", 11, "bold")).pack(pady=(12, 8))
+                 font=("Consolas", 13, "bold")).pack(pady=(14, 10))
 
         form = tk.Frame(dlg, bg=PANEL)
         form.pack(fill="x", padx=20)
 
         # Section
         tk.Label(form, text="Section:", bg=PANEL, fg=TEXT,
-                 font=("Courier", 9), anchor="w").grid(
-                     row=0, column=0, sticky="w", pady=4)
+                 font=("Consolas", 10, "bold"), anchor="w").grid(
+                     row=0, column=0, sticky="w", pady=5)
         sec_var = tk.StringVar(value=section_name or "")
         sections = list(self._labs[lab_name]["sections"].keys())
         if sections:
             sec_combo = ttk.Combobox(form, textvariable=sec_var,
-                                     values=sections, font=("Courier", 9),
-                                     width=30)
+                                     values=sections, font=("Consolas", 10),
+                                     width=28)
         else:
             sec_combo = tk.Entry(form, textvariable=sec_var,
-                                 font=("Courier", 9), width=32)
-        sec_combo.grid(row=0, column=1, sticky="w", pady=4, padx=(8, 0))
+                                 font=("Consolas", 10), width=30)
+        sec_combo.grid(row=0, column=1, sticky="w", pady=5, padx=(10, 0))
 
         # Logiciel
         tk.Label(form, text="Logiciel:", bg=PANEL, fg=TEXT,
-                 font=("Courier", 9), anchor="w").grid(
-                     row=1, column=0, sticky="w", pady=4)
+                 font=("Consolas", 10, "bold"), anchor="w").grid(
+                     row=1, column=0, sticky="w", pady=5)
         sw_var = tk.StringVar()
-        tk.Entry(form, textvariable=sw_var, font=("Courier", 9),
-                 width=32).grid(row=1, column=1, sticky="w", pady=4,
-                                padx=(8, 0))
+        tk.Entry(form, textvariable=sw_var, font=("Consolas", 10),
+                 width=30).grid(row=1, column=1, sticky="w", pady=5,
+                                padx=(10, 0))
 
         # Licence
         tk.Label(form, text="Licence:", bg=PANEL, fg=TEXT,
-                 font=("Courier", 9), anchor="w").grid(
-                     row=2, column=0, sticky="w", pady=4)
+                 font=("Consolas", 10, "bold"), anchor="w").grid(
+                     row=2, column=0, sticky="w", pady=5)
         lic_var = tk.StringVar(value="FREE")
         lic_combo = ttk.Combobox(
             form, textvariable=lic_var,
             values=["OS", "PROP", "FREE", "FREEM"],
-            font=("Courier", 9), width=10, state="readonly")
-        lic_combo.grid(row=2, column=1, sticky="w", pady=4, padx=(8, 0))
+            font=("Consolas", 10), width=10, state="readonly")
+        lic_combo.grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
 
         # Buttons
         btn_frame = tk.Frame(dlg, bg=PANEL)
@@ -1110,28 +1128,36 @@ class LaboSoft(tk.Tk):
         wrapper.pack(fill="both", expand=True, padx=14, pady=14)
 
         # Per-lab action bar (when a single lab is selected)
-        if self._active_lab is not None and HAS_OPENPYXL:
-            action_bar = tk.Frame(wrapper, bg=PANEL2, pady=6, padx=10)
-            action_bar.pack(fill="x", pady=(0, 10))
-
+        if self._active_lab is not None:
             lab_neon = self._labs[self._active_lab]["neon"]
-            tk.Label(action_bar, text="◈ GESTION:", bg=PANEL2, fg=MUTED,
-                     font=("Courier", 8, "bold")).pack(side="left", padx=(0, 8))
 
-            imp_btn = neon_btn(
-                action_bar, "IMPORTER EXCEL", "#00ff88",
-                command=lambda: self._import_lab_excel(self._active_lab))
-            imp_btn.pack(side="left", padx=3)
+            # Glow separator
+            glow_sep = tk.Frame(wrapper, bg=lab_neon, height=2)
+            glow_sep.pack(fill="x", pady=(0, 6))
 
-            exp_btn = neon_btn(
-                action_bar, "EXPORTER EXCEL", "#ffd700",
-                command=lambda: self._export_lab_excel(self._active_lab))
-            exp_btn.pack(side="left", padx=3)
+            action_bar = tk.Frame(wrapper, bg=PANEL2, pady=8, padx=12)
+            action_bar.pack(fill="x", pady=(0, 12))
+
+            tk.Label(action_bar, text="⟨ GESTION ⟩", bg=PANEL2, fg=lab_neon,
+                     font=("Consolas", 10, "bold")).pack(side="left", padx=(0, 12))
+
+            if HAS_OPENPYXL:
+                imp_btn = neon_btn(
+                    action_bar, "IMPORTER EXCEL", ACCENT2,
+                    command=lambda: self._import_lab_excel(self._active_lab))
+                imp_btn.pack(side="left", padx=4)
+
+                exp_btn = neon_btn(
+                    action_bar, "EXPORTER EXCEL", "#ffd700",
+                    command=lambda: self._export_lab_excel(self._active_lab))
+                exp_btn.pack(side="left", padx=4)
 
             add_btn = neon_btn(
                 action_bar, "+ AJOUTER LOGICIEL", lab_neon,
                 command=lambda: self._add_software(self._active_lab))
-            add_btn.pack(side="left", padx=3)
+            add_btn.pack(side="left", padx=4)
+
+            tk.Frame(wrapper, bg=BORDER, height=1).pack(fill="x", pady=(0, 6))
 
         col_frames = []
         for c in range(cols):
@@ -1171,12 +1197,12 @@ class LaboSoft(tk.Tk):
 
         tk.Frame(card, bg=neon, height=2).pack(fill="x")
 
-        hdr = tk.Frame(card, bg=PANEL2, padx=12, pady=8)
+        hdr = tk.Frame(card, bg=PANEL2, padx=14, pady=10)
         hdr.pack(fill="x")
         tk.Label(hdr, text="◆", bg=PANEL2, fg=neon,
-                 font=("Courier", 10, "bold")).pack(side="left", padx=(0, 6))
+                 font=("Consolas", 12, "bold")).pack(side="left", padx=(0, 8))
         tk.Label(hdr, text=lab_name.upper(), bg=PANEL2, fg=neon,
-                 font=("Courier", 10, "bold")).pack(side="left")
+                 font=("Consolas", 12, "bold")).pack(side="left")
 
         tk.Frame(card, bg=BORDER, height=1).pack(fill="x", padx=10)
 
@@ -1205,17 +1231,17 @@ class LaboSoft(tk.Tk):
 
             # Section header with + button
             sr = tk.Frame(body, bg=PANEL2)
-            sr.pack(fill="x", pady=(6, 2))
+            sr.pack(fill="x", pady=(8, 3))
             tk.Label(sr, text=f"  ◈ {sec_name}", bg=PANEL2, fg=neon,
-                     font=("Courier", 8, "bold"),
+                     font=("Consolas", 10, "bold"),
                      anchor="w").pack(side="left")
 
             if is_single:
                 add_sec_btn = tk.Label(
                     sr, text=" + ", bg=hex_mix(neon, 0.15), fg=neon,
-                    font=("Courier", 8, "bold"), cursor="hand2",
-                    padx=4, pady=0)
-                add_sec_btn.pack(side="left", padx=6)
+                    font=("Consolas", 10, "bold"), cursor="hand2",
+                    padx=5, pady=1)
+                add_sec_btn.pack(side="left", padx=8)
                 add_sec_btn.bind(
                     "<Button-1>",
                     lambda _, ln=lab_name, sn=sec_name:
@@ -1240,25 +1266,25 @@ class LaboSoft(tk.Tk):
 
                     # Nom du logiciel
                     tk.Label(inner_f, text=sw_name, bg=bg, fg=fg,
-                             font=("Courier", 8),
-                             padx=5, pady=2, width=22,
+                             font=("Consolas", 9, "bold"),
+                             padx=6, pady=3, width=22,
                              anchor="w").pack(side="left")
 
                     # Badge licence
-                    lic_bg = hex_mix(lic_col, 0.2)
+                    lic_bg = hex_mix(lic_col, 0.25)
                     tk.Label(inner_f, text=sw_lic, bg=lic_bg, fg=lic_col,
-                             font=("Courier", 6, "bold"),
-                             padx=3, pady=1, width=5).pack(side="right",
-                                                           padx=(0, 1),
+                             font=("Consolas", 7, "bold"),
+                             padx=4, pady=2, width=5).pack(side="right",
+                                                           padx=(0, 2),
                                                            pady=1)
 
                     # Delete button (only in single-lab view)
                     if is_single:
                         del_lbl = tk.Label(
                             inner_f, text="✕", bg=bg, fg="#ff4444",
-                            font=("Courier", 7, "bold"), cursor="hand2",
-                            padx=2, pady=0)
-                        del_lbl.pack(side="right", padx=(0, 1))
+                            font=("Consolas", 9, "bold"), cursor="hand2",
+                            padx=3, pady=0)
+                        del_lbl.pack(side="right", padx=(0, 2))
                         del_lbl.bind(
                             "<Button-1>",
                             lambda _, ln=lab_name, sn=sec_name,
@@ -1266,15 +1292,15 @@ class LaboSoft(tk.Tk):
                                 self._delete_software(ln, sn, swn, swl))
 
         # Badge compteur
-        badge_out = tk.Frame(hdr, bg=hex_mix(neon, 0.4), padx=1, pady=1)
+        badge_out = tk.Frame(hdr, bg=hex_mix(neon, 0.45), padx=1, pady=1)
         badge_out.pack(side="right")
         tk.Label(badge_out, text=f"  {total} logiciels  ",
-                 bg=hex_mix(neon, 0.15), fg=neon,
-                 font=("Courier", 8, "bold"), padx=4, pady=2).pack()
+                 bg=hex_mix(neon, 0.18), fg=neon,
+                 font=("Consolas", 9, "bold"), padx=6, pady=3).pack()
 
         return total, stats
 
 
 if __name__ == "__main__":
-    print("Demarrage LaboSoft Pro...")
+    print("Demarrage LABOSOFT-UQAM...")
     LaboSoft().mainloop()
