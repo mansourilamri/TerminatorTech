@@ -560,44 +560,88 @@ def hex_mix(hex_col, alpha, br=10, bg_=10, bb=15):
 
 
 def neon_btn(parent, text, color, command, active=False):
-    """Bouton style neon futuriste avec Frame+Label."""
-    bg_col = hex_mix(color, 0.22) if active else PANEL2
+    """Bouton style neon futuriste avec double bordure et glow."""
+    bg_col = hex_mix(color, 0.25) if active else "#0a0a18"
     fg_col = color
-    bd_col = color if active else hex_mix(color, 0.45)
+    bd_col = color if active else hex_mix(color, 0.5)
+    glow_col = hex_mix(color, 0.15)
 
-    outer = tk.Frame(parent, bg=bd_col, padx=1, pady=1)
+    # Outer glow layer
+    glow = tk.Frame(parent, bg=glow_col, padx=2, pady=2)
+
+    # Neon border
+    outer = tk.Frame(glow, bg=bd_col, padx=1, pady=1)
+    outer.pack(fill="both", expand=True)
+
+    # Inner content
     inner = tk.Frame(outer, bg=bg_col)
     inner.pack(fill="both", expand=True)
 
-    dot = tk.Label(inner, text="◆", bg=bg_col,
-                   fg=color if active else MUTED,
-                   font=("Consolas", 8))
-    dot.pack(side="left", padx=(6, 2), pady=6)
+    # Top glow line inside button
+    tk.Frame(inner, bg=bd_col, height=1).pack(fill="x")
 
-    lbl = tk.Label(inner, text=text, bg=bg_col,
-                   fg=fg_col if active else MUTED,
-                   font=("Consolas", 9, "bold"), pady=6, padx=4)
-    lbl.pack(side="left", padx=(0, 6))
+    content = tk.Frame(inner, bg=bg_col)
+    content.pack(fill="both", expand=True)
+
+    # Decorative bracket
+    brk = tk.Label(content, text="[", bg=bg_col,
+                   fg=bd_col,
+                   font=("Consolas", 9, "bold"))
+    brk.pack(side="left", padx=(6, 0), pady=6)
+
+    # Icon dot
+    dot = tk.Label(content, text="◆", bg=bg_col,
+                   fg=color if active else hex_mix(color, 0.6),
+                   font=("Consolas", 8))
+    dot.pack(side="left", padx=(2, 3), pady=6)
+
+    # Text label
+    lbl = tk.Label(content, text=text, bg=bg_col,
+                   fg=fg_col if active else hex_mix(color, 0.7),
+                   font=("Consolas", 9, "bold"), pady=6, padx=2)
+    lbl.pack(side="left")
+
+    # Closing bracket
+    brk2 = tk.Label(content, text="]", bg=bg_col,
+                    fg=bd_col,
+                    font=("Consolas", 9, "bold"))
+    brk2.pack(side="left", padx=(0, 6), pady=6)
+
+    # Bottom glow line
+    tk.Frame(inner, bg=bd_col, height=1).pack(fill="x")
+
+    hover_bg = hex_mix(color, 0.28)
+    all_widgets = [glow, outer, inner, content, brk, dot, lbl, brk2]
 
     def on_enter(_):
-        inner.config(bg=hex_mix(color, 0.18))
-        dot.config(bg=hex_mix(color, 0.18), fg=color)
-        lbl.config(bg=hex_mix(color, 0.18), fg=color)
+        for w in (inner, content):
+            w.config(bg=hover_bg)
+        brk.config(bg=hover_bg, fg=color)
+        dot.config(bg=hover_bg, fg=color)
+        lbl.config(bg=hover_bg, fg=WHITE)
+        brk2.config(bg=hover_bg, fg=color)
+        outer.config(bg=color)
+        glow.config(bg=hex_mix(color, 0.3))
 
     def on_leave(_):
-        inner.config(bg=bg_col)
-        dot.config(bg=bg_col, fg=color if active else MUTED)
-        lbl.config(bg=bg_col, fg=fg_col if active else MUTED)
+        for w in (inner, content):
+            w.config(bg=bg_col)
+        brk.config(bg=bg_col, fg=bd_col)
+        dot.config(bg=bg_col, fg=color if active else hex_mix(color, 0.6))
+        lbl.config(bg=bg_col, fg=fg_col if active else hex_mix(color, 0.7))
+        brk2.config(bg=bg_col, fg=bd_col)
+        outer.config(bg=bd_col)
+        glow.config(bg=glow_col)
 
     def on_click(_):
         command()
 
-    for w in (outer, inner, dot, lbl):
+    for w in all_widgets:
         w.bind("<Enter>", on_enter)
         w.bind("<Leave>", on_leave)
         w.bind("<Button-1>", on_click)
 
-    return outer
+    return glow
 
 
 class LaboSoft(tk.Tk):
@@ -803,48 +847,67 @@ class LaboSoft(tk.Tk):
 
     # -- Mise a jour onglets ---------------------------------------------------
     def _set_tab_active(self, key):
-        for k, outer in self._tab_widgets.items():
+        """Met a jour l'apparence des onglets.
+
+        Structure du bouton neon:
+        glow > outer > inner > [top_line, content, bottom_line]
+        content > [brk, dot, lbl, brk2]
+        """
+        for k, glow_w in self._tab_widgets.items():
             try:
-                inner = outer.winfo_children()[0]
-                children = inner.winfo_children()
-                dot = children[0]
-                lbl = children[1]
-                col = self._labs[k]["neon"] if k is not None else "#00cfff"
+                col = self._labs[k]["neon"] if k is not None else ACCENT
+                outer_w = glow_w.winfo_children()[0]
+                inner_w = outer_w.winfo_children()[0]
+                content_w = inner_w.winfo_children()[1]
+                parts = content_w.winfo_children()
+                brk, dot, lbl, brk2 = parts[0], parts[1], parts[2], parts[3]
             except Exception:
                 continue
 
             is_active = (k == key)
-            bg_col = hex_mix(col, 0.18) if is_active else PANEL2
-            bd_col = col if is_active else hex_mix(col, 0.4)
-            dot_fg = col if is_active else MUTED
-            lbl_fg = col if is_active else MUTED
+            bg_col = hex_mix(col, 0.25) if is_active else "#0a0a18"
+            bd_col = col if is_active else hex_mix(col, 0.5)
+            glow_col = hex_mix(col, 0.15)
 
-            outer.config(bg=bd_col)
-            inner.config(bg=bg_col)
-            dot.config(bg=bg_col, fg=dot_fg)
-            lbl.config(bg=bg_col, fg=lbl_fg)
+            glow_w.config(bg=glow_col)
+            outer_w.config(bg=bd_col)
+            for w in (inner_w, content_w):
+                w.config(bg=bg_col)
+            brk.config(bg=bg_col, fg=bd_col)
+            dot.config(bg=bg_col,
+                       fg=col if is_active else hex_mix(col, 0.6))
+            lbl.config(bg=bg_col,
+                       fg=col if is_active else hex_mix(col, 0.7))
+            brk2.config(bg=bg_col, fg=bd_col)
 
     def _set_filter_btn_active(self, key):
-        for k, outer in self._filter_widgets.items():
+        """Met a jour l'apparence des boutons de filtre licence."""
+        for k, glow_w in self._filter_widgets.items():
             try:
-                inner = outer.winfo_children()[0]
-                children = inner.winfo_children()
-                dot = children[0]
-                lbl = children[1]
-                col = LICENCE_COLORS.get(k, "#00cfff")
+                col = LICENCE_COLORS.get(k, ACCENT)
+                outer_w = glow_w.winfo_children()[0]
+                inner_w = outer_w.winfo_children()[0]
+                content_w = inner_w.winfo_children()[1]
+                parts = content_w.winfo_children()
+                brk, dot, lbl, brk2 = parts[0], parts[1], parts[2], parts[3]
             except Exception:
                 continue
 
             is_active = (k == key)
-            bg_col = hex_mix(col, 0.18) if is_active else PANEL2
-            bd_col = col if is_active else hex_mix(col, 0.4)
-            dot_fg = col if is_active else MUTED
-            lbl_fg = col if is_active else MUTED
+            bg_col = hex_mix(col, 0.25) if is_active else "#0a0a18"
+            bd_col = col if is_active else hex_mix(col, 0.5)
+            glow_col = hex_mix(col, 0.15)
 
-            outer.config(bg=bd_col)
-            inner.config(bg=bg_col)
-            dot.config(bg=bg_col, fg=dot_fg)
-            lbl.config(bg=bg_col, fg=lbl_fg)
+            glow_w.config(bg=glow_col)
+            outer_w.config(bg=bd_col)
+            for w in (inner_w, content_w):
+                w.config(bg=bg_col)
+            brk.config(bg=bg_col, fg=bd_col)
+            dot.config(bg=bg_col,
+                       fg=col if is_active else hex_mix(col, 0.6))
+            lbl.config(bg=bg_col,
+                       fg=col if is_active else hex_mix(col, 0.7))
+            brk2.config(bg=bg_col, fg=bd_col)
 
     # -- Filtre licence --------------------------------------------------------
     def _set_licence_filter(self, key):
